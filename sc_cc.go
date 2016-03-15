@@ -119,7 +119,7 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 
 	if args[0] == "getBatch" { return t.getBatch(stub, args[1]) }
 	if args[0] == "getAllBatches" { return t.getAllBatches(stub, args[1]) }
-	if args[0] == "getSCBatches" { return t.getAllBatches(stub, args[1]) }
+	if args[0] == "getSCBatches" { return t.getSCBatches(stub, args[1]) }
 
 	return nil, nil										
 }
