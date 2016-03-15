@@ -27,8 +27,8 @@ import (
 	"github.com/openblockchain/obc-peer/openchain/chaincode/shim"
 )
 
-const   PRODUCER = "FISHERMAN"
-const   SHIPPING = "SHIPPINGCo"
+const   PRODUCER = "FISHCO"
+const   SHIPPING = "SHIPPINGCO"
 const   RETAILER = "RETAILER"
 const 	CONSUMER = "CONSUMER"
 const 	CERTIFIER = "CERTIFIER"
@@ -48,6 +48,11 @@ type Batch struct {
 }
 
 type Transaction struct {
+	BType  		string  `json:"bType"`
+	Owner  		string  `json:"owner"`
+	Quantity	int 	`json:"quantity"`
+	Quality	 	string 	`json:"quality"`
+	Signature	string 	`json:"signature"`
 	VDate 		string   `json:"vDate"`
 	Location  	string   `json:"location"`
 	TType 		string   `json:"ttype"`
@@ -158,6 +163,50 @@ func (t *SimpleChaincode) getAllBatches(stub *shim.ChaincodeStub, user string)([
 	
 }
 
+// ============================================================================================================================
+// Get All Batches for SHIPPING Company
+// ============================================================================================================================
+func (t *SimpleChaincode) getSCBatches(stub *shim.ChaincodeStub, user string)([]byte, error){
+	
+	fmt.Println("Start find getAllBatches ")
+	fmt.Println("Looking for All Batches " + user);
+
+	if user != SHIPPING { return nil, errors.New("You are not allowed to retrieve all batches") }
+
+	//get the AllBatches index
+	allBAsBytes, err := stub.GetState("allBatches")
+	if err != nil {
+		return nil, errors.New("Failed to get all Batches")
+	}
+
+	var res AllBatches
+	err = json.Unmarshal(allBAsBytes, &res)
+	if err != nil {
+		return nil, errors.New("Failed to Unmarshal all Batches")
+	}
+
+	var rab AllBatches
+
+	for i := range res.Batches{
+
+		sbAsBytes, err := stub.GetState(res.Batches[i])
+		if err != nil {
+			return nil, errors.New("Failed to get Batch")
+		}
+		var sb Batch
+		json.Unmarshal(sbAsBytes, &sb)
+
+		if(sb.Owner == SHIPPING) {
+			rab.Batches = append(rab.Batches,sb.Id); 
+		}
+	}
+
+	rabAsBytes, _ := json.Marshal(rab)
+
+	return rabAsBytes, nil
+	
+}
+
 
 
 // ============================================================================================================================
@@ -188,18 +237,19 @@ func (t *SimpleChaincode) createBatch(stub *shim.ChaincodeStub, args []string) (
 		return nil, errors.New("Incorrect number of arguments. Expecting 6")
 	}
 
-	if args[2] != PRODUCER { return nil, errors.New("You are not allowed to create a new batch") }
+	if args[2] != PRODUCER { 
+		fmt.Println("You are not allowed to create a new batch")
+		return nil, errors.New("You are not allowed to create a new batch") 
+	}
 
 	var bt Batch
 	bt.Id 			= args[0]
 	bt.BType		= args[1]
 	bt.Owner		= args[2]
 	quantityValue, err := strconv.Atoi(args[3])
-	if err != nil {
-		return nil, errors.New("Invalid Quantity")
-	}else{
-		bt.Quantity = quantityValue
-	}
+	if err != nil { return nil, errors.New("Invalid Quantity")}
+	if(quantityValue < 1) {return nil, errors.New("Quantity should be at least equal to 1")}
+	bt.Quantity = quantityValue
 	bt.Quality 		= "OK"
 	bt.Signature 	= ""
 
@@ -207,6 +257,11 @@ func (t *SimpleChaincode) createBatch(stub *shim.ChaincodeStub, args []string) (
 	tx.VDate		= args[4]
 	tx.Location 	= args[5]
 	tx.TType 		= "CREATE"
+	tx.BType 		= bt.BType
+	tx.Owner 		= bt.Owner
+	tx.Quantity		= bt.Quantity
+	tx.Quality 		= bt.Quality
+	tx.Signature 	= bt.Signature 
 
 	bt.Transactions = append(bt.Transactions, tx)
 
@@ -271,6 +326,11 @@ func (t *SimpleChaincode) claimBatch(stub *shim.ChaincodeStub, args []string) ([
 	tx.VDate		= args[2]
 	tx.Location 	= args[3]
 	tx.TType 		= "CLAIM"
+	tx.BType 		= bch.BType
+	tx.Owner 		= bch.Owner
+	tx.Quantity		= bch.Quantity
+	tx.Quality 		= bch.Quality
+	tx.Signature 	= bch.Signature 
 
 	bch.Transactions = append(bch.Transactions, tx)
 
@@ -317,6 +377,11 @@ func (t *SimpleChaincode) transferBatch(stub *shim.ChaincodeStub, args []string)
 	tx.VDate		= args[2]
 	tx.Location 	= args[3]
 	tx.TType 		= "TRANSFER"
+	tx.BType 		= bch.BType
+	tx.Owner 		= bch.Owner
+	tx.Quantity		= bch.Quantity
+	tx.Quality 		= bch.Quality
+	tx.Signature 	= bch.Signature 
 
 	bch.Transactions = append(bch.Transactions, tx)
 
@@ -367,6 +432,11 @@ func (t *SimpleChaincode) sellBatchItem(stub *shim.ChaincodeStub, args []string)
 	tx.VDate		= args[2]
 	tx.Location 	= args[3]
 	tx.TType 		= "SELL"
+	tx.BType 		= bch.BType
+	tx.Owner 		= bch.Owner
+	tx.Quantity		= bch.Quantity
+	tx.Quality 		= bch.Quality
+	tx.Signature 	= bch.Signature 
 
 	bch.Transactions = append(bch.Transactions, tx)
 
@@ -413,6 +483,11 @@ func (t *SimpleChaincode) updateBatchQuality(stub *shim.ChaincodeStub, args []st
 	tx.VDate		= args[2]
 	tx.Location 	= args[3]
 	tx.TType 		= "UPDATE QUALITY"
+	tx.BType 		= bch.BType
+	tx.Owner 		= bch.Owner
+	tx.Quantity		= bch.Quantity
+	tx.Quality 		= bch.Quality
+	tx.Signature 	= bch.Signature 
 
 	bch.Transactions = append(bch.Transactions, tx)
 
