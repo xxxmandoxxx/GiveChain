@@ -113,13 +113,12 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 
 	if len(args) != 2 { return nil, errors.New("Incorrect number of arguments passed") }
 
-	if args[0] != "getBatch" && args[0] != "getAllBatches"{
+	if args[0] != "getBatch" && args[0] != "getAllBatches" && args[0] != "getSCBatches"{
 		return nil, errors.New("Invalid query function name.")
 	}
 
 	if args[0] == "getBatch" { return t.getBatch(stub, args[1]) }
 	if args[0] == "getAllBatches" { return t.getAllBatches(stub, args[1]) }
-	if args[0] == "getSCBatches" { return t.getSCBatches(stub, args[1]) }
 
 	return nil, nil										
 }
@@ -152,28 +151,6 @@ func (t *SimpleChaincode) getAllBatches(stub *shim.ChaincodeStub, user string)([
 	fmt.Println("Start find getAllBatches ")
 	fmt.Println("Looking for All Batches " + user);
 
-	if user != CERTIFIER { return nil, errors.New("You are not allowed to retrieve all batches") }
-
-	//get the AllBatches index
-	allBAsBytes, err := stub.GetState("allBatches")
-	if err != nil {
-		return nil, errors.New("Failed to get all Batches")
-	}
-
-	return allBAsBytes, nil
-	
-}
-
-// ============================================================================================================================
-// Get All Batches for SHIPPING Company
-// ============================================================================================================================
-func (t *SimpleChaincode) getSCBatches(stub *shim.ChaincodeStub, user string)([]byte, error){
-	
-	fmt.Println("Start find getAllBatches ")
-	fmt.Println("Looking for All Batches " + user);
-
-	if user != SHIPPING { return nil, errors.New("You are not allowed to retrieve all batches") }
-
 	//get the AllBatches index
 	allBAsBytes, err := stub.GetState("allBatches")
 	if err != nil {
@@ -197,9 +174,10 @@ func (t *SimpleChaincode) getSCBatches(stub *shim.ChaincodeStub, user string)([]
 		var sb Batch
 		json.Unmarshal(sbAsBytes, &sb)
 
-		if(sb.Owner == SHIPPING) {
+		if(sb.Owner == user || user == CERTIFIER) {
 			rab.Batches = append(rab.Batches,sb.Id); 
 		}
+
 	}
 
 	rabAsBytes, _ := json.Marshal(rab)
@@ -207,7 +185,6 @@ func (t *SimpleChaincode) getSCBatches(stub *shim.ChaincodeStub, user string)([]
 	return rabAsBytes, nil
 	
 }
-
 
 
 // ============================================================================================================================
@@ -423,21 +400,22 @@ func (t *SimpleChaincode) sellBatchItem(stub *shim.ChaincodeStub, args []string)
 	if err != nil {
 		return nil, errors.New("Failed to Unmarshal Batch #" + args[0])
 	}
-	bch.Owner = args[5]
 
-	if(bch.Quantity-1 < 0) { return nil, errors.New("You can't sell anymore item from this batch") }
+	quantityValue, err := strconv.Atoi(args[4])
+	if err != nil { return nil, errors.New("Invalid Quantity")}
+	if(bch.Quantity-quantityValue < 0) { return nil, errors.New("You can't sell "+ args[4] + " items from this batch") }
 	
-	bch.Quantity = bch.Quantity-1
+	bch.Quantity = bch.Quantity-quantityValue 
 
 	var tx Transaction
 	tx.VDate		= args[2]
 	tx.Location 	= args[3]
 	tx.TType 		= "SELL"
 	tx.BType 		= bch.BType
-	tx.Owner 		= bch.Owner
-	tx.Quantity		= bch.Quantity
+	tx.Owner 		= args[5]
+	tx.Quantity		= quantityValue
 	tx.Quality 		= bch.Quality
-	tx.Signature 	= bch.Signature 
+	tx.Signature 	= ""
 
 	bch.Transactions = append(bch.Transactions, tx)
 
