@@ -124,16 +124,16 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 // ============================================================================================================================
 func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 
-	if len(args) != 2 { return nil, errors.New("Incorrect number of arguments passed") }
+	if len(args) != 1 { return nil, errors.New("Incorrect number of arguments passed") }
 
 	if function != "getBatch" && function != "getAllBatches" && function != "getAllBatchesDetails" && function != "getNbItems"{
 		return nil, errors.New("Invalid query function name.")
 	}
 
-	if function == "getBatch" { return t.getBatch(stub, args[1]) }
-	if function == "getAllBatches" { return t.getAllBatches(stub, args[1]) }
-	if function == "getAllBatchesDetails" { return t.getAllBatchesDetails(stub, args[1]) }
-	if function == "getNbItems" { return t.getNbItems(stub, args[1]) }
+	if function == "getBatch" { return t.getBatch(stub, args[0]) }
+	if function == "getAllBatches" { return t.getAllBatches(stub, args[0]) }
+	if function == "getAllBatchesDetails" { return t.getAllBatchesDetails(stub, args[0]) }
+	if function == "getNbItems" { return t.getNbItems(stub, args[0]) }
 
 	return nil, nil										
 }
