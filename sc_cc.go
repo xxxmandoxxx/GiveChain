@@ -24,7 +24,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/openblockchain/obc-peer/openchain/chaincode/shim"
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+
 )
 
 const   PRODUCER = "FISHCO"
@@ -69,7 +70,7 @@ type AllBatchesDetails struct{
 // ============================================================================================================================
 // Init 
 // ============================================================================================================================
-func (t *SimpleChaincode) init(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 
 	var err error
 	
@@ -88,12 +89,12 @@ func (t *SimpleChaincode) init(stub *shim.ChaincodeStub, args []string) ([]byte,
 // ============================================================================================================================
 // Run - Our entry point
 // ============================================================================================================================
-func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	fmt.Println("Run is running " + function)
 
 	// Handle different functions
 	if function == "init" {													//initialize the chaincode state
-		return t.init(stub, args)
+		return t.Init(stub, "init", args)
 	} else if function == "createBatch" {											//create a batch
 		return t.createBatch(stub, args)
 	} else if function == "claimBatch" {											//claim ownership of a batch
