@@ -84,6 +84,13 @@ func (t *SimpleChaincode) Init(stub *shim.ChaincodeStub, function string, args [
 	return nil, nil
 }
 
+// ============================================================================================================================
+// Run - Our entry point for Invocations - [LEGACY] obc-peer 4/25/2016
+// ============================================================================================================================
+func (t *SimpleChaincode) Run(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+	fmt.Println("run is running " + function)
+	return t.Invoke(stub, function, args)
+}
 
 
 // ============================================================================================================================
