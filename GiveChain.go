@@ -132,7 +132,7 @@ func (t *SimpleChaincode) getAllDonationsByUserId(stub *shim.ChaincodeStub, user
 	//get the AllBatches index
 	allDonsBytes, err := stub.GetState("allDonations")
 	if err != nil {
-		return nil, errors.New("Failed to get all Batches")
+		return nil, errors.New("Failed to get all Donations")
 	}
 
 	var res AllDonations
@@ -153,7 +153,9 @@ func (t *SimpleChaincode) getAllDonationsByUserId(stub *shim.ChaincodeStub, user
 		json.Unmarshal(sdASBytes, &sd)
 
 		if(sd.Owner == userID) {
-			rad.Donations = append(rad.Donations,sd.Id);
+			rad.Donations = append(rad.Donations, sd.Id);
+		} else {
+			rad.Donations = append(rad.Donations, "TESTING")
 		}
 
 	}
