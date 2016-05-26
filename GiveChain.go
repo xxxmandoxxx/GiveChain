@@ -121,6 +121,8 @@ func (t *SimpleChaincode) Invoke(stub *shim.ChaincodeStub, function string, args
 		return t.Init(stub, "init", args)
 	} else if function == "createDonation" {											//create a batch
 		return t.createDonation(stub, args)
+	} else if function == "transfer" {											//create a batch
+		return t.transfer(stub, args)
 	}
 
 	fmt.Println("run did not find func: " + function)						//error
