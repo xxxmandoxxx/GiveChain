@@ -35,11 +35,11 @@ import (
 type SimpleChaincode struct {
 }
 
-type Domation struct {
+type Donation struct {
 	Id   		string  `json:"id"`
 	Owner  		string  `json:"owner"`
-	Amount		int	`json:"amount"`
-	ProjectID	int 	`json:"projectID"`
+	Amount		int 	`json:"amount"`
+	ProjectID	string 	`json:"projectID"`
 	Transactions []Transaction `json:"transactions"`
 }
 
@@ -48,7 +48,7 @@ type Transaction struct {
 	tDate		string	`json:"tdate"`
 	Destination  	string  `json:"destination"`
 	Amount		int 	`json:"amount"`
-	ProjectID	int 	`json:"projectID"`
+	ProjectID	string 	`json:"projectID"`
 	TType 		string   `json:"ttype"`
 }
 
@@ -145,14 +145,14 @@ func (t *SimpleChaincode) getAllDonationsByUserId(stub *shim.ChaincodeStub, user
 
 	for i := range res.Donations{
 
-		sdASBytes, err := stub.GetState(res.Batches[i])
+		sdASBytes, err := stub.GetState(res.Donations[i])
 		if err != nil {
 			return nil, errors.New("Failed to get Donation")
 		}
 		var sd Donation
 		json.Unmarshal(sdASBytes, &sd)
 
-		if(sb.Owner == userID) {
+		if(sd.Owner == userID) {
 			rad.Donations = append(rad.Donations,sd.Id);
 		}
 
@@ -178,7 +178,7 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 	}
 
 
-	var do Domation
+	var do Donation
 	do.Id 			= args[3]
 	//do.Amount		= args[0]
 	do.Owner		= args[2]
@@ -187,7 +187,8 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 	var tx Transaction
 	tx.ProjectID		= args[1]
 	tx.TType 		= "CREATE"
-	tx.Amount		= args[0]
+	intAmount, err := strconv.Atoi(args[0])
+	tx.Amount		= intAmount
 	tx.tDate		= args[4]
 	tx.Id			= args[3] + "T1"
 
@@ -211,7 +212,7 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 	if err != nil {
 		return nil, errors.New("Failed to Unmarshal all Donations")
 	}
-	alld.Donations = append(alld.Batches,do.Id)
+	alld.Donations = append(alld.Donations,do.Id)
 
 	allDoAsBytes, _ := json.Marshal(alld)
 	err = stub.PutState("allDonations", allDoAsBytes)
@@ -221,10 +222,6 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 
 	return nil, nil
 }
-
-
-
-
 
 
 func main() {
