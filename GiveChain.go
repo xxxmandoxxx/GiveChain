@@ -47,7 +47,6 @@ type Donation struct {
 type Transaction struct {
 	Id   		string  `json:"id"`
 	tDate		string	`json:"tdate"`
-	Destination  	string  `json:"destination"`
 	Amount		int64 	`json:"amount"`
 	ProjectID	string 	`json:"projectID"`
 	TType 		string   `json:"ttype"`
@@ -64,6 +63,11 @@ type AllDonationsDetails struct{
 }
 
 type ProjectAmount struct {
+	Name	string	`json:"name"`
+	Amount	int64	`json:"amount"`
+}
+
+type DonationAmount struct {
 	Name	string	`json:"name"`
 	Amount	int64	`json:"amount"`
 }
@@ -148,6 +152,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	if function == "getSupplier" {return t.getSupplier(stub, args[0])}
 	if function == "getAllSupplier" {return t.getAllSuppliers(stub)}
 	if function == "getAllDonations" {return t.getAllDonations(stub)}
+	if function == "getAmountD" { return t.getAmountD(stub, args[0]) }
+
 	return nil, nil
 }
 
@@ -391,10 +397,6 @@ func (t *SimpleChaincode) getAmount(stub *shim.ChaincodeStub, projectID string)(
 
 func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 
-	if len(args) != 3 {
-		fmt.Println("Incorrect number of arguments. Expecting ")
-		return nil, errors.New("Incorrect number of arguments. Expecting 5")
-	}
 
 	var supplierID string = args[0]
 	var projectID string = args[1]
@@ -495,6 +497,9 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					tx.tDate		= tTime.Format("2006-01-02 15:04:05")
 					tx.Id			= sd.Id + "T" + strconv.Itoa(tCount)
 					tx.SupplierID		= supplier.ID
+					if len(args) == 4 {
+						tx.Details = args[3]
+					}
 
 					sd.Transactions = append(sd.Transactions, tx)
 
@@ -520,6 +525,10 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					tx.Id			= sd.Id + "T" + strconv.Itoa(tCount)
 					tx.SupplierID		= supplier.ID
 
+					if len(args) == 4 {
+						tx.Details = args[3]
+					}
+
 					sd.Transactions = append(sd.Transactions, tx)
 
 
@@ -543,6 +552,10 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					sTx.Id			= sd.Id + "T" + strconv.Itoa(tCount) + "S"
 					sTx.SupplierID		= supplier.ID
 
+					if len(args) == 4 {
+						sTx.Details = args[3]
+					}
+
 					supplier.Transactions = append(supplier.Transactions, sTx)
 
 					fmt.Println("createDonation Commit Donation To Ledger");
@@ -562,6 +575,39 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 	}
 
 return nil, nil
+
+}
+
+
+func (t *SimpleChaincode) getAmountD(stub *shim.ChaincodeStub, donationID string)([]byte, error){
+
+
+	fmt.Println("Looking for Donation with  id " + donationID);
+
+
+	sDonAsBytes, err := stub.GetState(donationID)
+	if err != nil {
+		return nil, errors.New("Failed to get Donation")
+	}
+
+	var don Donation
+	err = json.Unmarshal(sDonAsBytes, &don)
+	if err != nil {
+		return nil, errors.New("Failed to Unmarshal Donation")
+	}
+
+	var dAmount DonationAmount
+	dAmount.Name = donationID
+
+			for x := range don.Transactions{
+				var tx Transaction
+				tx = don.Transactions[x]
+				dAmount.Amount = dAmount.Amount + tx.Amount
+			}
+
+	daAsBytes, _ := json.Marshal(dAmount)
+
+	return daAsBytes, nil
 
 }
 
