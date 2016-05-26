@@ -365,26 +365,33 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 	}
 	var amount int64 = int64(intAmount)
 	var originalAmount int64 = int64(intAmount)
+	fmt.Println("calling getAmount function")
 	pAmountAsByte , err := t.getAmount(stub,projectID)
+	if err != nil {
+		return nil, errors.New("Failed to gtun getAmount Function")
+	}
 
 	var pAmount ProjectAmount
+	fmt.Println("unmarshall spamount")
 	json.Unmarshal(pAmountAsByte, &pAmount)
 
 	if pAmount.Amount > amount {
 
 		//CHECK IF SUPPLIER EXISTS
+		fmt.Println("getting suppler")
 		supAsByte , err := stub.GetState(supplierID)
 		if err != nil {
 			//CREATE SUPPLIER AND ADD TO LEDGER AND ALLSUPPLIERS STATE
+			fmt.Println("Didn't find supplier")
 			var supplier Supplier
 			supplier.ID = supplierID
-
+			fmt.Println("writing supplier to ledger")
 			sAsBytes, _ := json.Marshal(supplier)
 			err = stub.PutState(supplier.ID, sAsBytes)
 			if err != nil {
-				return nil, err
+				return nil, errors.New("Can't save supplier to ledger")
 			}
-
+			fmt.Println("getting allSuppliers")
 			allSUsBytes, err := stub.GetState("allSuppliers")
 			if err != nil {
 				return nil, errors.New("Failed to get all Suppliers")
@@ -399,15 +406,16 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 			allSupAsBytes, _ := json.Marshal(allsup)
 			err = stub.PutState("allSuppliers", allSupAsBytes)
 			if err != nil {
-				return nil, err
+				return nil, errors.New("Failed to save all Suppliers to ledger")
 				var ttt Supplier
 				json.Unmarshal(supAsByte, &ttt)
 			}
 		}
 
+		fmt.Println("getting supplier new")
 		newsupAsByte, err := stub.GetState(supplierID)
 		if err != nil {
-			return nil, err
+			return nil, errors.New("error getting new supplier")
 		}
 
 		var supplier Supplier
@@ -446,8 +454,10 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 				}
 
 				tCount = tCount + 1
-
+				fmt.Println(dAmount)
+				fmt.Println(amount)
 				if dAmount < amount {
+					fmt.Println("not enough funds")
 					var tempamount int64
 					tempamount = amount - dAmount
 					amount = tempamount
@@ -463,16 +473,18 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					sd.Transactions = append(sd.Transactions, tx)
 
 					//Commit batch to ledger
-					fmt.Println("createDonation Commit Donation To Ledger");
+					fmt.Println("Create tx To Ledger");
 					doAsBytes, _ := json.Marshal(sd)
 					err = stub.PutState(sd.Id, doAsBytes)
 					if err != nil {
-						return nil, err
+						return nil, errors.New("Failed to put tx")
 					}
 
 					amount = amount - tempamount
+					fmt.Println("tempampunt")
+					fmt.Println(tempamount)
 				} else {
-
+					fmt.Println("enough funds")
 					var tx Transaction
 					tx.ProjectID		= projectID
 					tx.TType 		= "TRANSFER"
@@ -485,16 +497,17 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					sd.Transactions = append(sd.Transactions, tx)
 
 
-					fmt.Println("createDonation Commit Donation To Ledger");
+					fmt.Println("tx To Ledger");
 					doAsBytes, _ := json.Marshal(sd)
 					err = stub.PutState(sd.Id, doAsBytes)
 					if err != nil {
-						return nil, err
+						return nil, errors.New("Failed to put tx")
 					}
 					amount = amount - amount
 				}
 
 				if amount == 0 {
+					fmt.Println("amount is 0")
 					var sTx Transaction
 					sTx.ProjectID		= projectID
 					sTx.TType 		= "TRANSFER"
@@ -510,7 +523,7 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					doAsBytes, _ := json.Marshal(supplier)
 					err = stub.PutState(supplier.ID, doAsBytes)
 					if err != nil {
-						return nil, err
+						return nil, errors.New("Failed to put tx")
 					}
 					return nil, nil
 				}
