@@ -145,8 +145,10 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	if function == "getDonation" { return t.getDonation(stub, args[0]) }
 	if function == "getTransactions" { return t.getTransactions(stub, args[0]) }
 	if function == "getAmount" { return t.getAmount(stub, args[0]) }
-
-	return nil, nil										
+	if function == "getSupplier" {return t.getSupplier(stub, args[0])}
+	if function == "getAllSupplier" {return t.getAllSuppliers(stub)}
+	if function == "getAllDonations" {return t.getAllDonations(stub)}
+	return nil, nil
 }
 
 // Get all donations by user id
@@ -201,6 +203,22 @@ func (t *SimpleChaincode) getAllDonations(stub *shim.ChaincodeStub)([]byte, erro
 	allDonsBytes, err := stub.GetState("allDonations")
 	if err != nil {
 		return nil, errors.New("Failed to get all Donations")
+	}
+
+	return allDonsBytes, nil
+
+}
+
+// get all donations
+func (t *SimpleChaincode) getAllSuppliers(stub *shim.ChaincodeStub)([]byte, error){
+
+	fmt.Println("Start find all Suppliers ")
+	fmt.Println("Looking for all Suppliers ");
+
+
+	allDonsBytes, err := stub.GetState("allSuppliers")
+	if err != nil {
+		return nil, errors.New("Failed to get all suppliers")
 	}
 
 	return allDonsBytes, nil
@@ -293,6 +311,27 @@ func (t *SimpleChaincode) getTransactions(stub *shim.ChaincodeStub, donationID s
 	}
 
 	var do Donation
+	err = json.Unmarshal(dAsBytes, &do)
+
+	tAsBytes, err := json.Marshal(do.Transactions)
+
+	return tAsBytes, nil
+
+}
+
+//get all transactions based on donation ID
+func (t *SimpleChaincode) getSupplierTranssactions(stub *shim.ChaincodeStub, supplierID string)([]byte, error){
+
+	fmt.Println("Start find Supplier")
+	fmt.Println("Looking for Supplier #" + supplierID);
+
+
+	dAsBytes, err := stub.GetState(supplierID)
+	if err != nil {
+		return nil, errors.New("Failed to get supplier #" + supplierID)
+	}
+
+	var do Supplier
 	err = json.Unmarshal(dAsBytes, &do)
 
 	tAsBytes, err := json.Marshal(do.Transactions)
@@ -539,6 +578,21 @@ return nil, nil
 
 }
 
+// get donations based on ID
+func (t *SimpleChaincode) getSupplier(stub *shim.ChaincodeStub, supplierID string)([]byte, error){
+
+	fmt.Println("Start find Supplier")
+	fmt.Println("Looking for supplier #" + supplierID);
+
+	//get the batch index
+	dAsBytes, err := stub.GetState(supplierID)
+	if err != nil {
+		return nil, errors.New("Failed to get supplier #" + supplierID)
+	}
+
+	return dAsBytes, nil
+
+}
 
 func main() {
 	err := shim.Start(new(SimpleChaincode))
