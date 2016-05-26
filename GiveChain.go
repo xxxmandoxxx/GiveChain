@@ -38,8 +38,8 @@ type SimpleChaincode struct {
 type Domation struct {
 	Id   		string  `json:"id"`
 	Owner  		string  `json:"owner"`
-	Amount		long 	`json:"amount"`
-	ProjectID	long 	`json:"projectID"`
+	Amount		int	`json:"amount"`
+	ProjectID	int 	`json:"projectID"`
 	Transactions []Transaction `json:"transactions"`
 }
 
@@ -48,7 +48,7 @@ type Transaction struct {
 	tDate		string	`json:"tdate"`
 	Destination  	string  `json:"destination"`
 	Amount		int 	`json:"amount"`
-	ProjectID	long 	`json:"projectID"`
+	ProjectID	int 	`json:"projectID"`
 	TType 		string   `json:"ttype"`
 }
 
