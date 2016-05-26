@@ -419,17 +419,15 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 		//CHECK IF SUPPLIER EXISTS
 		fmt.Println("getting suppler")
 		supAsByte , err := stub.GetState(supplierID)
-		if err != nil {
+
 			//CREATE SUPPLIER AND ADD TO LEDGER AND ALLSUPPLIERS STATE
-			fmt.Println("Didn't find supplier")
+
 			var supplier Supplier
+			json.Unmarshal(supAsByte,&supplier)
 			supplier.ID = supplierID
-			fmt.Println("writing supplier to ledger")
-			sAsBytes, _ := json.Marshal(supplier)
-			err = stub.PutState(supplier.ID, sAsBytes)
-			if err != nil {
-				return nil, errors.New("Can't save supplier to ledger")
-			}
+
+
+
 			fmt.Println("getting allSuppliers")
 			allSUsBytes, err := stub.GetState("allSuppliers")
 			if err != nil {
@@ -449,17 +447,6 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 				var ttt Supplier
 				json.Unmarshal(supAsByte, &ttt)
 			}
-		}
-
-		fmt.Println("getting supplier new")
-		newsupAsByte, err := stub.GetState(supplierID)
-		if err != nil {
-			return nil, errors.New("error getting new supplier")
-		}
-
-		var supplier Supplier
-		json.Unmarshal(newsupAsByte, &supplier)
-
 
 
 		allDonsBytes, err := stub.GetState("allDonations")
