@@ -117,7 +117,8 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	//}
 
 	if function == "getAllDonationsByUserId" { return t.getAllDonationsByUserId(stub, args[0]) }
-
+	if function == "getDonation" { return t.getDonation(stub, args[0]) }
+	if function == "getTransactions" { return t.getTransactions(stub, args[0]) }
 
 	return nil, nil										
 }
@@ -166,7 +167,21 @@ func (t *SimpleChaincode) getAllDonationsByUserId(stub *shim.ChaincodeStub, user
 
 }
 
+// get all donations
+func (t *SimpleChaincode) getAllDonations(stub *shim.ChaincodeStub)([]byte, error){
 
+	fmt.Println("Start find all Donations ")
+	fmt.Println("Looking for all Donations ");
+
+	//get the AllBatches index
+	allDonsBytes, err := stub.GetState("allDonations")
+	if err != nil {
+		return nil, errors.New("Failed to get all Donations")
+	}
+
+	return allDonsBytes, nil
+
+}
 // Create a donation and store in the block chain
 
 func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
@@ -224,6 +239,44 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 
 	return nil, nil
 }
+
+// get donations based on ID
+func (t *SimpleChaincode) getDonation(stub *shim.ChaincodeStub, donationID string)([]byte, error){
+
+	fmt.Println("Start find Donation")
+	fmt.Println("Looking for Donation #" + donationID);
+
+	//get the batch index
+	dAsBytes, err := stub.GetState(donationID)
+	if err != nil {
+		return nil, errors.New("Failed to get Batch #" + donationID)
+	}
+
+	return dAsBytes, nil
+
+}
+
+//get all transactions based on donation ID
+func (t *SimpleChaincode) getTransactions(stub *shim.ChaincodeStub, donationID string)([]byte, error){
+
+	fmt.Println("Start find Donation")
+	fmt.Println("Looking for Donation #" + donationID);
+
+
+	dAsBytes, err := stub.GetState(donationID)
+	if err != nil {
+		return nil, errors.New("Failed to get Donation #" + donationID)
+	}
+
+	var do Donation
+	err = json.Unmarshal(dAsBytes, &do)
+
+	tAsBytes, err := json.Marshal(do.Transactions)
+
+	return tAsBytes, nil
+
+}
+
 
 
 func main() {
