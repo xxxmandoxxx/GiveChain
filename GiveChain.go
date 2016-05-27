@@ -351,7 +351,6 @@ func (t *SimpleChaincode) getAmount(stub *shim.ChaincodeStub, projectID string)(
 	fmt.Println("Start find all Donations ")
 	fmt.Println("Looking for all Donations with project id " + projectID);
 
-	//get the AllBatches index
 	allDonsBytes, err := stub.GetState("allDonations")
 	if err != nil {
 		return nil, errors.New("Failed to get all Donations")
