@@ -153,6 +153,7 @@ func (t *SimpleChaincode) Query(stub *shim.ChaincodeStub, function string, args 
 	if function == "getAllSupplier" {return t.getAllSuppliers(stub)}
 	if function == "getAllDonations" {return t.getAllDonations(stub)}
 	if function == "getAmountD" { return t.getAmountD(stub, args[0]) }
+	if function == "getAmountDAvail" { return t.getAmountD(stub, args[0]) }
 
 	return nil, nil
 }
@@ -598,11 +599,43 @@ func (t *SimpleChaincode) getAmountD(stub *shim.ChaincodeStub, donationID string
 	var dAmount DonationAmount
 	dAmount.Name = donationID
 
-			for x := range don.Transactions{
-				var tx Transaction
-				tx = don.Transactions[x]
-				dAmount.Amount = dAmount.Amount + tx.Amount
-			}
+
+	var tx Transaction
+	tx = don.Transactions[0]
+	dAmount.Amount = tx.Amount
+
+
+	daAsBytes, _ := json.Marshal(dAmount)
+
+	return daAsBytes, nil
+
+}
+
+func (t *SimpleChaincode) getAmountAvailD(stub *shim.ChaincodeStub, donationID string)([]byte, error){
+
+
+	fmt.Println("Looking for Donation with  id " + donationID);
+
+
+	sDonAsBytes, err := stub.GetState(donationID)
+	if err != nil {
+		return nil, errors.New("Failed to get Donation")
+	}
+
+	var don Donation
+	err = json.Unmarshal(sDonAsBytes, &don)
+	if err != nil {
+		return nil, errors.New("Failed to Unmarshal Donation")
+	}
+
+	var dAmount DonationAmount
+	dAmount.Name = donationID
+
+	for x := range don.Transactions{
+		var tx Transaction
+		tx = don.Transactions[x]
+		dAmount.Amount = dAmount.Amount + tx.Amount
+	}
 
 	daAsBytes, _ := json.Marshal(dAmount)
 
