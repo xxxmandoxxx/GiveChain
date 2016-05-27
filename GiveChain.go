@@ -257,6 +257,7 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 	tx.Amount		= int64(intAmount)
 	tx.txDate		= args[4]
 	tx.Id			= args[3] + "T1"
+	tx.Details		= "Initial Transaction"
 
 	do.Transactions = append(do.Transactions, tx)
 
@@ -658,6 +659,8 @@ func (t *SimpleChaincode) getSupplier(stub *shim.ChaincodeStub, supplierID strin
 	return dAsBytes, nil
 
 }
+
+
 
 func main() {
 	err := shim.Start(new(SimpleChaincode))
