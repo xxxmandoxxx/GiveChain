@@ -46,7 +46,7 @@ type Donation struct {
 
 type Transaction struct {
 	Id   		string  `json:"id"`
-	tDate		string	`json:"tdate"`
+	txDate		string	`json:"txdate"`
 	Amount		int64 	`json:"amount"`
 	ProjectID	string 	`json:"projectID"`
 	TType 		string   `json:"ttype"`
@@ -255,7 +255,7 @@ func (t *SimpleChaincode) createDonation(stub *shim.ChaincodeStub, args []string
 	tx.TType 		= "CREATE"
 	intAmount, err := strconv.Atoi(args[0])
 	tx.Amount		= int64(intAmount)
-	tx.tDate		= args[4]
+	tx.txDate		= args[4]
 	tx.Id			= args[3] + "T1"
 
 	do.Transactions = append(do.Transactions, tx)
@@ -494,7 +494,7 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					tx.TType 		= "TRANSFER"
 					tx.Amount		= -dAmount
 					tTime 			:= time.Now()
-					tx.tDate		= tTime.Format("2006-01-02 15:04:05")
+					tx.txDate		= tTime.Format("2006-01-02 15:04:05")
 					tx.Id			= sd.Id + "T" + strconv.Itoa(tCount)
 					tx.SupplierID		= supplier.ID
 					if len(args) == 4 {
@@ -521,7 +521,7 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					tx.TType 		= "TRANSFER"
 					tx.Amount		= -amount
 					tTime 			:= time.Now()
-					tx.tDate		= tTime.Format("2006-01-02 15:04:05")
+					tx.txDate		= tTime.Format("2006-01-02 15:04:05")
 					tx.Id			= sd.Id + "T" + strconv.Itoa(tCount)
 					tx.SupplierID		= supplier.ID
 
@@ -548,7 +548,7 @@ func (t *SimpleChaincode) transfer(stub *shim.ChaincodeStub, args []string) ([]b
 					sTx.TType 		= "TRANSFER"
 					sTx.Amount		= originalAmount
 					tTime 			:= time.Now()
-					sTx.tDate		= tTime.Format("2006-01-02 15:04:05")
+					sTx.txDate		= tTime.Format("2006-01-02 15:04:05")
 					sTx.Id			= sd.Id + "T" + strconv.Itoa(tCount) + "S"
 					sTx.SupplierID		= supplier.ID
 
